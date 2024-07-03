@@ -40,8 +40,8 @@ def to_radians(angle):
 
 #create map of coast with satellite angle data at specific one frame 
 def create_frame(station_angles, stations, ax): 
-    columns_to_check = station_angles.index[2: ]
-    time_frame = station_angles['TimeFrame']
+    columns_to_check = station_angles.index[2:] #start column 2 
+    time_frame = station_angles['TimeFramePacific'] # use the pacific time 
 
     for column in columns_to_check: 
         value = station_angles[column]
@@ -50,31 +50,34 @@ def create_frame(station_angles, stations, ax):
             graph_signal(ax, signal)
 
     # Annotate with timestamp in the bottom left corner
-    timestamp_to_display = pd.to_datetime(station_angles['TimeFrame'])
+    datetime_format = '%y-%m-%d %H:%M:%S: Pacific Time'  # Adjust format as per your data
+    timestamp_to_display = datetime.strptime(time_frame, datetime_format)
     ax.annotate(timestamp_to_display.strftime('%Y-%m-%d %H:%M:%S'),
-            xy=(0.05, 0.05), xycoords='axes fraction',
-            fontsize=10, bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5))
+                xy=(0.05, 0.05), xycoords='axes fraction',
+                fontsize=10, bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5))
 
 #Will probably still want to display fig after saving if calling from main 
 def save_frame(fig, timestamp): 
     filename = f'/Users/kaylaracelis/Desktop/NIWC24/frames/{timestamp}.png' 
     plt.savefig(filename)
 
-#Dont need to display fig when downloading for animation. Must close fig for next map. 
-def save_ani_frame(fig, timestamp): 
-    filename = f'/Users/kaylaracelis/Desktop/NIWC24/frames/{timestamp}.png' 
-    plt.savefig(filename)
-    plt.close()
+# #Dont need to display fig when downloading for animation. Must close fig for next map. 
+# def save_ani_frame(fig, timestamp): 
+#     filename = f'/Users/kaylaracelis/Desktop/NIWC24/frames/{timestamp}.png' 
+#     plt.savefig(filename)
 
 def create_image_frames(angle_df, coastline, stations, abbreviations): 
     for index, row in angle_df.iterrows(): 
         #create new fig and axis for each row 
-        fig, ax = plt.subplots() 
+        fig, ax = create_basemap(coastline, stations, abbreviations)
 
-        create_basemap(coastline, stations, abbreviations)
+        rowdata = angle_df.iloc[index]
+        create_frame(rowdata, stations, ax)
+        save_frame(fig, row['TimeFramePacific']) 
 
-        create_frame(row, stations, ax)
-        save_frame(fig, row['TimeFrame']) 
+        plt.close(fig)
+
+
 
 # def update_frame(row, stations, ax, coastline, abbreviations): 
 #     ax.clear() # clear previous plot 

@@ -19,19 +19,14 @@ from trianimation import *
 
 def main(): 
 
-#*************** PLOT COASTLINE BASEMAP *****************
 
-#path to shapefile
+    #************* FILE IMPORTS FOR PING AND ANGLE DATA ****************** 
+
     coastline = readFile('NIWC/socal_mapping/data/N30W120.shp')
 
     #create and plot antenna stations 
     stations = createAntennaStations()
     abbreviations = createAbbreviations()
-
-    #create basemap 
-    fig, ax = create_basemap(coastline, stations, abbreviations)
-
-    #************* FILE IMPORTS FOR PING AND ANGLE DATA ****************** 
 
     #import file with pings (RSSI) and angles (bearings)
     ping_file_path = '/Users/kaylaracelis/Downloads/T6178194B_RSSI(in).csv'   
@@ -52,11 +47,13 @@ def main():
 
     #print_to_text_file(ping_df, angle_df, output_file)
     #print_ping_summary(ping_df, output_file)
-    print(angle_df)
+    #print(angle_df)
 
     #print(f"Data and summary printed to {output_file}")
 
     #*************** CREATE FRAME *********************
+    # # Create Base Map 
+    fig, ax = create_basemap(coastline, stations, abbreviations)
 
     # #  TEST RUN (works)
     # line = create_line_angle(stations['V30B0154CF14'], 90)
@@ -67,11 +64,11 @@ def main():
     # # TEST RUN WITH WHOLE TIMEFRAME (works)
     # row = angle_df.iloc[1] 
     # create_frame(row, stations, ax) 
-    # save_frame(fig, row['TimeFrame'])
+    # save_frame(fig, row['TimeFramePacific'])
     # plt.show()
     # plt.close(fig)
 
-    # # DOWNLOAD ALL FRAMES INTO FOLDER ! 
+    # # DOWNLOAD ALL FRAMES INTO FOLDER ! (don't work)
     create_image_frames(angle_df, coastline, stations, abbreviations)
     #please work 
 
