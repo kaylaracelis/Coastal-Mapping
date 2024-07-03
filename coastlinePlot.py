@@ -7,6 +7,39 @@ from shapely.geometry import box, MultiPolygon, Point
 import geopandas as gpd
 import contextily as ctx
 
+def create_basemap(coastline, stations, abbreviations): 
+
+    #define the bounding box coordinates 
+    north, south, east, west = 33.3, 32.53, -117.08, -117.5
+
+    #clip the coastline
+    clipped_coastline = clipToBoundingBox(coastline, north, south, east, west)
+
+    #plot the clipped coastline 
+    fig, ax = plotCoast(clipped_coastline)
+
+    #set plot title and labels 
+    ax.set_title('Socal Coastline', fontsize = 16)
+    ax.set_xlabel('Longitude', fontsize = 8)
+    ax.set_ylabel('Latitude', fontsize = 8) 
+
+    #add a grid and background
+    ax.grid(True) 
+    ax.set_facecolor('lightgrey')
+
+    #convert coastline to Web Mercador (BASEMAP)
+    clipped_coastline = clipped_coastline.to_crs(epsg=4269)
+
+    #add basemap COLORED(BASEMAP)
+    # ctx.add_basemap(ax, zoom = 12, crs = 'EPSG:4269', source = ctx.providers.OpenStreetMap.Mapnik)
+
+    #add basemap BLACK&WHITE (BASEMAP)
+    ctx.add_basemap(ax, zoom = 12, crs = 'EPSG:4269', source = ctx.providers.CartoDB.Positron)
+
+    plotStations(ax, stations, abbreviations)
+
+    return fig, ax
+
 
 def readFile(shapefile_path): 
     #read shapefile using geopandas
@@ -65,6 +98,8 @@ def plotStations(ax, stations, abbreviations):
     unique_labels= dict(zip(labels, handles))
     ax.legend(unique_labels.values(), unique_labels.keys(), title= "Station Abbreviations", loc = 'upper right', fontsize = 5)
 
+    return ax
+
 
 def createLandPolygon(coastline, north, south, east, west): 
     #create bounding box polygon
@@ -99,22 +134,17 @@ def plotPoints(ax, points):
     for i, point in enumerate(points): 
         ax.plot(point.x, point.y, 'ro', markersize = 3)
         ax.text(point.x, point.y, f'Point{i+1}', fontsize=5, ha= 'right') #label point
+    
+    return ax
 
 def plotCoast(coast): 
     #plot the coastline with higher resolution
     fig, ax = plt.subplots(figsize=(15, 15), dpi = 400)
     coast.plot(ax=ax, color = 'blue', edgecolor = 'black', linewidth = 0.3)
+
     return fig, ax
 
-def displayPlot(ax, filename = 'coastal_map.svg'): 
-    #set plot title and labels 
-    ax.set_title('Socal Coastline', fontsize = 16)
-    ax.set_xlabel('Longitude', fontsize = 8)
-    ax.set_ylabel('Latitude', fontsize = 8) 
-
-    #add a grid and background
-    ax.grid(True) 
-    ax.set_facecolor('lightgrey')
+def saveSVG(ax, filename = 'coastal_map.svg'): 
 
     # #adjust font size for numbers on axis (FOR PDF SAVE)
     # ax.tick_params(axis = 'both', which = 'major', labelsize = 6)
@@ -137,46 +167,3 @@ def displayPlot(ax, filename = 'coastal_map.svg'):
 
     #save the plot as SVG 
     plt.savefig(file_path, format = 'svg')
-
-# def main(): 
-
-#     #path to shapefile
-#     coastline = readFile('NIWC/socal_mapping/data/N30W120.shp')
-
-#     #define the bounding box coordinates 
-#     north, south, east, west = 33.3, 32.53, -117.08, -117.5
-
-#     #clip the coastline
-#     clipped_coastline = clipToBoundingBox(coastline, north, south, east, west)
-
-#     #plot the clipped coastline 
-#     fix, ax = plotCoast(clipped_coastline)
-
-#     #convert coastline to Web Mercador (BASEMAP)
-#     clipped_coastline = clipped_coastline.to_crs(epsg=4269)
-
-#     #add basemap COLORED(BASEMAP)
-#     # ctx.add_basemap(ax, zoom = 12, crs = 'EPSG:4269', source = ctx.providers.OpenStreetMap.Mapnik)
-
-#     #add basemap BLACK&WHITE (BASEMAP)
-#     ctx.add_basemap(ax, zoom = 12, crs = 'EPSG:4269', source = ctx.providers.CartoDB.Positron)
-
-#     #create and plot antenna stations 
-#     stations = createAntennaStations()
-#     abbreviations = createAbbreviations()
-#     plotStations(ax, stations, abbreviations)
-
-#     #add points near the coordinates 32.707 N, 117.173 W
-#     points = createPoints()
-
-#     #plot and label points 
-#     plotPoints(ax, points)
-
-#     #display the plot and save 
-#     displayPlot(ax,filename='coastal_map.svg')
-
-#     return 0
-
-# #calling main
-# if __name__ == "__main__": 
-#     main()
