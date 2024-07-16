@@ -21,9 +21,9 @@ import imageio
 import glob 
 from moviepy.editor import ImageSequenceClip 
 
+#same as trianimation except that theres framework for adjusting the length of the signal visualization based on RSSI 
 
-def create_point(station, angle): 
-    length = .03
+def create_point(station, angle, length): # 
     end_x = station.x + length * math.cos(to_radians(angle))
     end_y = station.y + length * math.sin(to_radians(angle))
 
@@ -32,21 +32,25 @@ def create_point(station, angle):
     return point_b
 
 #function that creates a line and rotates it 
-def create_line_angle(station, angle): 
+def create_line_angle(station, angle, length): 
 
-    point_b = create_point(station, angle)
+    point_b = create_point(station, angle, length)
     line = LineString([station, point_b])
     
     return line
 
-def create_highlight_area(station, angle): 
+def length_from_rssi(rssi): 
+    return 
+    ## FUNCTION CONVERTING RSSI INTO LENGTH 
+
+def create_highlight_area(station, angle, length): 
     # Convert angle to radians, get end point and main line. 
     
     angle_a = angle + 10
     angle_b = angle - 10
 
-    point_a = create_point(station, angle_a)
-    point_b = create_point(station, angle_b)
+    point_a = create_point(station, angle_a, length)
+    point_b = create_point(station, angle_b, length)
 
     # create highlight polygons, 10 degrees in either direction of the line
     highlight_polygons = [] 
@@ -121,12 +125,12 @@ def graph_signal(ax, line):
     x, y = line.xy
     ax.plot(x,y, linewidth = .5, color = 'b', linestyle = '-')
 
-
 def to_radians(angle):
     return math.radians(angle)
 
+##********************************CHANGING SHIT IN HERE *****************************  BE WARY 
 #create map of coast with satellite angle data at specific one frame 
-def create_frame(station_angles, stations, ax): 
+def create_frame(station_angles, station_RSSI, stations, ax): 
     columns_to_check = station_angles.index[2:] #start column 2 
     time_frame = station_angles['TimeFramePacific'] # use the pacific time 
     highlight_areas = []
@@ -135,9 +139,15 @@ def create_frame(station_angles, stations, ax):
         value = station_angles[column]
 
         if pd.notna(value) and pd.api.types.is_numeric_dtype(value): 
-            signal = create_line_angle(stations[column], 90) # doin stuff [ value + 90] 
+
+            rssi = station_RSSI[column] 
+            length = length_from_rssi(rssi)
+
+            #PUT STUFF HERE ABOUT CONVERTING RSSI INTO APPROPRIATE DISTANCE 
+
+            signal = create_line_angle(stations[column], 90, length) # doin stuff [ value + 90] 
             graph_signal(ax, signal)
-            highlight = create_highlight_area(stations[column], 90) 
+            highlight = create_highlight_area(stations[column], 90, length) 
             highlight_areas.append(highlight)
 
     #call check_overlap function
@@ -163,13 +173,15 @@ def save_frame(fig, timestamp):
 #     filename = f'/Users/kaylaracelis/Desktop/NIWC24/frames/{timestamp}.png' 
 #     plt.savefig(filename)
 
-def create_image_frames(angle_df, coastline, stations, abbreviations): 
+#*****CHANGING STUFF IN HERE 
+def create_image_frames(angle_df, ping_df, coastline, stations, abbreviations): ##################################
     for index, row in angle_df.iterrows(): 
         #create new fig and axis for each row 
         fig, ax = create_basemap(coastline, stations, abbreviations)
 
-        rowdata = angle_df.iloc[index]
-        create_frame(rowdata, stations, ax)
+        anglerowdata = angle_df.iloc[index]
+        pingrowdata = ping_df.iloc[index]
+        create_frame(anglerowdata, pingrowdata, stations, ax)
         save_frame(fig, row['TimeFramePacific']) 
 
         plt.close(fig)
