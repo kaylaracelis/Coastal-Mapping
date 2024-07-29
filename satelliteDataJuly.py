@@ -26,7 +26,7 @@ def convert_utc_to_pacific(utc_time_str):
         except ValueError: 
             return utc_time_str
 
-#prints output to a datafile
+#prints output to a datafile (dont really use much)
 def print_to_text_file(ping_data, angle_data, output_file): 
     with open(output_file, mode = 'w', encoding = 'utf-8') as file: 
         file.write(ping_data)

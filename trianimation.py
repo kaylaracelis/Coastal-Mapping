@@ -23,6 +23,7 @@ from moviepy.editor import ImageSequenceClip
 
 
 def create_point(station, angle): 
+    print(f"create_point angle {angle}")
     length = .03
     end_x = station.x + length * math.cos(to_radians(angle))
     end_y = station.y + length * math.sin(to_radians(angle))
@@ -33,6 +34,7 @@ def create_point(station, angle):
 
 #function that creates a line and rotates it 
 def create_line_angle(station, angle): 
+    print(f"create_line_angle angle {angle}")
 
     point_b = create_point(station, angle)
     line = LineString([station, point_b])
@@ -40,6 +42,7 @@ def create_line_angle(station, angle):
     return line
 
 def create_highlight_area(station, angle): 
+    print(f"create_highlight angle {angle}")
     # Convert angle to radians, get end point and main line. 
     
     angle_a = angle + 10
@@ -111,6 +114,7 @@ def plot_highlight_areas(highlight_areas, result, ax):
     return ax
             
 def rotate_point(point, angle, station): 
+    print(f"rotate point angle {angle}")
     ox, oy = station
     px, py = point 
     qx = ox + np.cos(angle) * (px - ox) - np.sin(angle) * (py - oy) 
@@ -122,22 +126,25 @@ def graph_signal(ax, line):
     ax.plot(x,y, linewidth = .5, color = 'b', linestyle = '-')
 
 
+
 def to_radians(angle):
     return math.radians(angle)
 
 #create map of coast with satellite angle data at specific one frame 
 def create_frame(station_angles, stations, ax): 
-    columns_to_check = station_angles.index[2:] #start column 2 
+    # columns_to_check = station_angles.index[2:] #start column 2 
     time_frame = station_angles['TimeFramePacific'] # use the pacific time 
     highlight_areas = []
+    print(station_angles)
 
-    for column in columns_to_check: 
+    for column in station_angles.index[2:]: 
         value = station_angles[column]
 
         if pd.notna(value) and pd.api.types.is_numeric_dtype(value): 
-            signal = create_line_angle(stations[column], 90) # doin stuff [ value + 90] 
+            print(value)
+            signal = create_line_angle(stations[column], value + 90) # doin stuff [ value + 90] 
             graph_signal(ax, signal)
-            highlight = create_highlight_area(stations[column], 90) 
+            highlight = create_highlight_area(stations[column], value + 90) 
             highlight_areas.append(highlight)
 
     #call check_overlap function
@@ -185,6 +192,9 @@ def create_image_frames_from_start(start, angle_df, coastline, stations, abbrevi
 
         plt.close(fig)
 
+#   CODE TO MAKE THE PNGS SORTABLE. probably should just edit the code to make better png names 
+#   if you plan on running this code in the future. 
+
 # def extract_timestamp(file_name): 
 #     #Assuming format: 'YY-MM-DD HH/MM/SS/ Pacific Time.png 
 #     #Replace slashes with colons and spaces appropriately 
@@ -193,7 +203,7 @@ def create_image_frames_from_start(start, angle_df, coastline, stations, abbrevi
 #     #Example result : 'YY-MM-DD_HH:MM:SS_Pacific_Time.png
 #     return timestamp 
 
-# THIS AINT WORK .. or it half works 
+
 def create_animation(folder_path): 
     # retrieve all PNG files in the folder 
     files = glob.glob(os.path.join(folder_path, '*.png'))
@@ -263,59 +273,3 @@ def rename_files(folder_path):
 
 
 
-# def update_frame(row, stations, ax, coastline, abbreviations): 
-#     ax.clear() # clear previous plot 
-#     create_basemap(coastline, stations, abbreviations)
-
-#     #add frame data
-#     ax = create_frame(row, stations, ax)
-
-#     return row
-
-# def get_interval(first_time, next_time): 
-#     duration = next_time - first_time
-#     interval = duration.seconds * 5
-
-#     return interval 
-
-
-# def animate(fig, angle_df, stations, coastline, abbreviations): 
-#     #create a duplicate with shift to get interval 
-#     angle_df['nextTimeFrame'] = angle_df['TimeFrame'].shift(-1)
-
-#     #convert columns to datetime 
-#     angle_df['TimeFrame'] = pd.to_datetime(angle_df['TimeFrame']) 
-#     angle_df['nextTimeFrame'] = pd.to_datetime(angle_df['nextTimeFrame'])
-
-#     time_diffs = angle_df.apply(lambda row: get_interval(row['TimeFrame'], row['nextTimeFrame']), axis = 1)
-
-#     #time_diffs = angle_df['TimeFrame'].diff().dt.total_seconds().values * 1000 
-
-#     #create animation 
-#     ani = FuncAnimation(fig, update_frame, frames = angle_df['TimeFrame'], blit = True, interval = 200)
-
-#     #save animation 
-#     ani.save('animation.mp4', writer = 'ffmpeg')
-
-#     plt.show()
-
-
-if __name__ == "__main__":
-    # Example GeoDataFrame initialization
-    polygon1 = Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
-    polygon2 = Polygon([(1, 1), (3, 1), (3, 3), (1, 3)])
-    polygon3 = Polygon([(2, 2), (4, 2), (4, 4), (2, 4)])
-    
-    gdf1 = gpd.GeoDataFrame(geometry=[polygon1])
-    gdf2 = gpd.GeoDataFrame(geometry=[polygon2])
-    gdf3 = gpd.GeoDataFrame(geometry=[polygon3])
-    
-    highlight_areas = [gdf1, gdf2, gdf3]
-    
-    # Call check_overlap function
-    overlap_results, intersected_areas = check_overlap(highlight_areas)
-
-    fig, ax = plt.sublplots(figsize = (8,6))
-    
-    # Plot highlighted areas color-coded by overlap depth
-    highlight_region(intersected_areas, overlap_results, ax)

@@ -10,7 +10,11 @@ import contextily as ctx
 def create_basemap(coastline, stations, abbreviations): 
 
     #define the bounding box coordinates 
-    north, south, east, west = 33.3, 32.53, -117.08, -117.5
+    #north, south, east, west = 33.3, 32.53, -117.08, -117.5
+
+    # COORDINATES FOR STATIONS 1-3 = 33.3, 33.18, -117.37, -117.5
+
+    north, south, east, west = 33.3, 33.18, -117.37, -117.5 #ST 1-3
 
     #clip the coastline
     clipped_coastline = clipToBoundingBox(coastline, north, south, east, west)
@@ -101,33 +105,18 @@ def plotStations(ax, stations, abbreviations):
     return ax
 
 
-def createLandPolygon(coastline, north, south, east, west): 
-    #create bounding box polygon
-    bbox = box(west, south, east, north) 
-
-    #merge all coastline geometries into a single geometry 
-    coastline_union=unary_union(coastline.geometry)
-
-    #split the bounding box with the coastline 
-    land_polygons = bbox.difference(coastline_union)
-
-    #ensure the result is a MultiPolygon
-    if isinstance(land_polygons, Polygon): 
-        land_polygons = MultiPolygon([land_polygons])
-
-    return land_polygons
-
-def createPoints(): 
-    #generate points near the specified coordinates 
-    #Note: 0.00001deg is like 30-40 feet. Choosing points at random. 
-    points = [
-        Point(-117.170, 32.708), 
-        Point(-117.168, 32.681), 
-        Point(-117.238, 32.67), 
-        Point(-117.157, 32.657), 
-        Point(-117.255, 32.72)
-    ]
-    return points
+#   FUNCTION CAN BE USED IN THE FUTURE TO PLOT NESTING SITES. 
+# def createPoints(): 
+#     #generate points near the specified coordinates 
+#     #Note: 0.00001deg is like 30-40 feet. Choosing points at random. 
+#     points = [
+#         Point(-117.170, 32.708), 
+#         Point(-117.168, 32.681), 
+#         Point(-117.238, 32.67), 
+#         Point(-117.157, 32.657), 
+#         Point(-117.255, 32.72)
+#     ]
+#     return points
 
 def plotPoints(ax, points):
     #plot and label points 
