@@ -22,6 +22,7 @@ import glob
 from moviepy.editor import ImageSequenceClip 
 
 
+
 def create_point(station, angle): 
     print(f"create_point angle {angle}")
     length = .03
@@ -112,7 +113,9 @@ def plot_highlight_areas(highlight_areas, result, ax):
         gdf.plot(ax=ax, facecolor=color, alpha=0.4)
     
     return ax
-            
+
+#rotates a point a number of degrees, 
+# accepts a point, degrees to rotate the point, and the station its rotating about 
 def rotate_point(point, angle, station): 
     print(f"rotate point angle {angle}")
     ox, oy = station
@@ -120,6 +123,7 @@ def rotate_point(point, angle, station):
     qx = ox + np.cos(angle) * (px - ox) - np.sin(angle) * (py - oy) 
     qy = oy + np.sin(angle) * (px - ox) - np.cos(angle) * (py - oy) 
     return qx, qy 
+
 
 def graph_signal(ax, line): 
     x, y = line.xy
@@ -135,14 +139,14 @@ def create_frame(station_angles, stations, ax):
     # columns_to_check = station_angles.index[2:] #start column 2 
     time_frame = station_angles['TimeFramePacific'] # use the pacific time 
     highlight_areas = []
-    print(station_angles)
 
+    #index 2 is first station column
     for column in station_angles.index[2:]: 
         value = station_angles[column]
 
         if pd.notna(value) and pd.api.types.is_numeric_dtype(value): 
             print(value)
-            signal = create_line_angle(stations[column], value + 90) # doin stuff [ value + 90] 
+            signal = create_line_angle(stations[column], value + 90) # +90 to realign degrees
             graph_signal(ax, signal)
             highlight = create_highlight_area(stations[column], value + 90) 
             highlight_areas.append(highlight)
@@ -170,17 +174,19 @@ def save_frame(fig, timestamp):
 #     filename = f'/Users/kaylaracelis/Desktop/NIWC24/frames/{timestamp}.png' 
 #     plt.savefig(filename)
 
+#creates images from 0 index
 def create_image_frames(angle_df, coastline, stations, abbreviations): 
     for index, row in angle_df.iterrows(): 
         #create new fig and axis for each row 
         fig, ax = create_basemap(coastline, stations, abbreviations)
 
         rowdata = angle_df.iloc[index]
-        create_frame(rowdata, stations, ax)
+        create_frame(rowdata, stations, ax) #sending row data, header/stations, and plot
         save_frame(fig, row['TimeFramePacific']) 
 
         plt.close(fig)
 
+#creates images from defined start index
 def create_image_frames_from_start(start, angle_df, coastline, stations, abbreviations): 
     for index, row in angle_df.iloc[start:].iterrows():
         #create new fig and axis for each row 
@@ -192,18 +198,7 @@ def create_image_frames_from_start(start, angle_df, coastline, stations, abbrevi
 
         plt.close(fig)
 
-#   CODE TO MAKE THE PNGS SORTABLE. probably should just edit the code to make better png names 
-#   if you plan on running this code in the future. 
-
-# def extract_timestamp(file_name): 
-#     #Assuming format: 'YY-MM-DD HH/MM/SS/ Pacific Time.png 
-#     #Replace slashes with colons and spaces appropriately 
-#     timestamp_part = file_name.split('/')[-1].split('.png')[0]
-#     timestamp = timestamp_part.replace('/', ':').replace(' ', '_')
-#     #Example result : 'YY-MM-DD_HH:MM:SS_Pacific_Time.png
-#     return timestamp 
-
-
+#compiles animations in batches 
 def create_animation(folder_path): 
     # retrieve all PNG files in the folder 
     files = glob.glob(os.path.join(folder_path, '*.png'))
@@ -247,7 +242,8 @@ def create_animation(folder_path):
         start_index += batch_size 
 
 
-
+# function for renaming files to be easier to chronologically sort, in the future 
+# should probably just edit the code to name the files properly in the first place. 
 def rename_files(folder_path): 
     #get a list of all files in the folder 
     files = os.listdir(folder_path) 

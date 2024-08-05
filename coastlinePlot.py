@@ -10,7 +10,7 @@ import contextily as ctx
 def create_basemap(coastline, stations, abbreviations): 
 
     #define the bounding box coordinates 
-    #north, south, east, west = 33.3, 32.53, -117.08, -117.5
+    # COORDINATES FOR ALL STATIONS = 33.3, 32.53, -117.08, -117.5
 
     # COORDINATES FOR STATIONS 1-3 = 33.3, 33.18, -117.37, -117.5
 

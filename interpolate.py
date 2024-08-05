@@ -119,7 +119,8 @@ def bin_rssi_values(df_melted):
     #drop rows where value is still nan after conversion 
     df_melted = df_melted.dropna(subset=['Value']) 
 
-    #define bin edges for rsssi values 
+    #define bin edges for rssi values 
+    # // takes the lower boundary. * 5 to make it a lower multiple of 5 +10 to create the upper boundary above max value
     bin_edges = np.arange(int(df_melted['Value'].min() // 5) * 5, int(df_melted['Value'].max() // 5) * 5 + 10, 5)
 
     #create binned values 
